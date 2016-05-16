@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from negex import sortRules, negTagger
+from libs.negex import sortRules, negTagger
 from nltk import word_tokenize
 import math
 import re

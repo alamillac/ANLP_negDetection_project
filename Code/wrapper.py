@@ -1,4 +1,4 @@
-from negex import *
+from libs.negex import *
 import csv
 
 
