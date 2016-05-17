@@ -47,12 +47,48 @@ class TestNegDetection(unittest.TestCase):
                             "AND": 1
                         },
                         "count": 3
+                    },
+                    "feature_2": {
+                        "values": {
+                            "COMMA_WORDS": 2,
+                            "AND_WORDS": 1
+                        },
+                        "count": 3
+                    },
+                    "feature_3": {
+                        "values": {
+                            "COMMA_WORDS_COMMA": 1,
+                            "AND_WORDS_COMMA": 1
+                        },
+                        "count": 2
+                    },
+                    "feature_4": {
+                        "values": {
+                            "PREN": 0,
+                            "NO_PREN": 3
+                        },
+                        "count": 3
                     }
                 },
                 "next": {
                     "feature_1": {
                         "values": {
                             "POINT": 3
+                        },
+                        "count": 3
+                    },
+                    "feature_2": {
+                        "values": {},
+                        "count": 0
+                    },
+                    "feature_3": {
+                        "values": {},
+                        "count": 0
+                    },
+                    "feature_4": {
+                        "values": {
+                            "PREN": 0,
+                            "NO_PREN": 3
                         },
                         "count": 3
                     }
@@ -66,12 +102,50 @@ class TestNegDetection(unittest.TestCase):
                             "COMMA": 1
                         },
                         "count": 1
+                    },
+                    "feature_2": {
+                        "values": {
+                            "COMMA_WORDS": 1
+                        },
+                        "count": 1
+                    },
+                    "feature_3": {
+                        "values": {
+                            "COMMA_WORDS_PREN": 1
+                        },
+                        "count": 1
+                    },
+                    "feature_4": {
+                        "values": {
+                            "PREN": 1,
+                            "NO_PREN": 0
+                        },
+                        "count": 1
                     }
                 },
                 "next": {
                     "feature_1": {
                         "values": {
                             "COMMA": 1
+                        },
+                        "count": 1
+                    },
+                    "feature_2": {
+                        "values": {
+                            "COMMA_OR": 1
+                        },
+                        "count": 1
+                    },
+                    "feature_3": {
+                        "values": {
+                            "COMMA_OR_WORDS": 1
+                        },
+                        "count": 1
+                    },
+                    "feature_4": {
+                        "values": {
+                            "PREN": 0,
+                            "NO_PREN": 1
                         },
                         "count": 1
                     }

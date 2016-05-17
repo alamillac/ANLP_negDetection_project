@@ -54,10 +54,22 @@ class NegDetection(object):
         for class_name in self.__class_names.values():
             model[class_name] = {
                 "prev": {
-                    "feature_1": {"values": {}, "count": 0}
+                    "feature_1": {"values": {}, "count": 0},
+                    "feature_2": {"values": {}, "count": 0},
+                    "feature_3": {"values": {}, "count": 0},
+                    "feature_4": {"values": {
+                        "PREN": 0,
+                        "NO_PREN": 0
+                    }, "count": 0}
                 },
                 "next": {
-                    "feature_1": {"values": {}, "count": 0}
+                    "feature_1": {"values": {}, "count": 0},
+                    "feature_2": {"values": {}, "count": 0},
+                    "feature_3": {"values": {}, "count": 0},
+                    "feature_4": {"values": {
+                        "PREN": 0,
+                        "NO_PREN": 0
+                    }, "count": 0}
                 },
                 "count": 0
             }
@@ -67,15 +79,16 @@ class NegDetection(object):
             # update count class
             model[class_name]["count"] += 1
 
-            # update feature1
             for prev_or_next in ["prev", "next"]:
-                feature1 = self.get_feature1(data, prev_or_next)
-                if feature1:
-                    if feature1 in model[class_name][prev_or_next]["feature_1"]["values"]:
-                        model[class_name][prev_or_next]["feature_1"]["values"][feature1] += 1
-                    else:
-                        model[class_name][prev_or_next]["feature_1"]["values"][feature1] = 1
-                    model[class_name][prev_or_next]["feature_1"]["count"] += 1
+                for feature_name in ["feature_1", "feature_2", "feature_3", "feature_4"]:
+                    # update features
+                    feature_n = self.get_feature(data, prev_or_next, feature_name)
+                    if feature_n:
+                        if feature_n in model[class_name][prev_or_next][feature_name]["values"]:
+                            model[class_name][prev_or_next][feature_name]["values"][feature_n] += 1
+                        else:
+                            model[class_name][prev_or_next][feature_name]["values"][feature_n] = 1
+                        model[class_name][prev_or_next][feature_name]["count"] += 1
 
         return model
 
@@ -139,32 +152,82 @@ class NegDetection(object):
             feature1 = features[0]
         return feature1
 
-    def get_prob_feature1(self, data, class_name):
-        f1_p = self.get_feature1(data, "prev")
-        f1_n = self.get_feature1(data, "next")
+    def get_feature2(self, data, prev_or_next):
+        features = data["features"][prev_or_next]
+        feature2 = None
+        if len(features) > 1:
+            feature2 = "%s_%s" % (features[0], features[1])
+        return feature2
 
-        vocabulary = self._model["vocabulary"]
-        f1_p_total = self._model[class_name]["prev"]["feature_1"]["count"]
-        f1_n_total = self._model[class_name]["next"]["feature_1"]["count"]
+    def get_feature3(self, data, prev_or_next):
+        features = data["features"][prev_or_next]
+        feature3 = None
+        if len(features) > 2:
+            feature3 = "%s_%s_%s" % (features[0], features[1], features[2])
+        return feature3
 
-        if f1_p in self._model[class_name]["prev"]["feature_1"]["values"]:
-            f1_p_count = self._model[class_name]["prev"]["feature_1"]["values"][f1_p]
+    def get_feature4(self, data, prev_or_next):
+        """PREN exist before POINT"""
+        features = data["features"][prev_or_next]
+        idx = 0
+        exit = False
+        feature4 = "NO_PREN"
+        while not exit and idx < len(features):
+            if features[idx] == "PREN":
+                feature4 = "PREN"
+                exit = True
+            elif features[idx] == "POINT":
+                exit = True
+            idx += 1
+        return feature4
+
+    def get_feature(self, data, prev_or_next, feature_name):
+        handler = {
+            "feature_1": self.get_feature1,
+            "feature_2": self.get_feature2,
+            "feature_3": self.get_feature3,
+            "feature_4": self.get_feature4
+        }
+        return handler[feature_name](data, prev_or_next)
+
+    def get_vocabulary(self, feature_name):
+        handler = {
+            "feature_1": self._model["vocabulary"],
+            "feature_2": self._model["vocabulary"] ** 2,
+            "feature_3": self._model["vocabulary"] ** 3,
+            "feature_4": 2
+        }
+        return handler[feature_name]
+
+    def get_prob_feature(self, data, class_name, feature_name):
+        f_p = self.get_feature(data, "prev", feature_name)
+        f_n = self.get_feature(data, "next", feature_name)
+
+        vocabulary = self.get_vocabulary(feature_name)
+        f_p_total = self._model[class_name]["prev"][feature_name]["count"]
+        f_n_total = self._model[class_name]["next"][feature_name]["count"]
+
+        if f_p in self._model[class_name]["prev"][feature_name]["values"]:
+            f_p_count = self._model[class_name]["prev"][feature_name]["values"][f_p]
         else:
-            f1_p_count = 0
+            f_p_count = 0
 
-        if f1_n in self._model[class_name]["next"]["feature_1"]["values"]:
-            f1_n_count = self._model[class_name]["next"]["feature_1"]["values"][f1_n]
+        if f_n in self._model[class_name]["next"][feature_name]["values"]:
+            f_n_count = self._model[class_name]["next"][feature_name]["values"][f_n]
         else:
-            f1_n_count = 0
+            f_n_count = 0
 
-        prob = math.log(float(f1_p_count + 1) / (f1_p_total + vocabulary)) + math.log(float(f1_n_count + 1) / (f1_n_total + vocabulary))
+        prob = math.log(float(f_p_count + 1) / (f_p_total + vocabulary)) + math.log(float(f_n_count + 1) / (f_n_total + vocabulary))
         return prob
 
     def get_probability(self, data):
         prob = {}
         for class_name in self.__class_names.values():
-            f1_prob = self.get_prob_feature1(data, class_name)
-            prob[class_name] = math.log(float(self._model[class_name]["count"]) / self._model["total_docs"]) + f1_prob
+            f1_prob = self.get_prob_feature(data, class_name, "feature_1")
+            f2_prob = self.get_prob_feature(data, class_name, "feature_2")
+            f3_prob = self.get_prob_feature(data, class_name, "feature_3")
+            f4_prob = self.get_prob_feature(data, class_name, "feature_4")
+            prob[class_name] = math.log(float(self._model[class_name]["count"]) / self._model["total_docs"]) + f1_prob + f2_prob + f3_prob + f4_prob
         return prob
 
     def test(self, test_set):
