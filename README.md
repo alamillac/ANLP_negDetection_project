@@ -1,6 +1,18 @@
 # ANLP negDetection project
 Project for Advanced natural language processing
 
+## Installation
+
+```sh
+$ cd Code
+$ pip install -r requirements.txt
+```
+
+## Run
+python negDetection.py
+
+## Results
+
 ### Train results
  - Total examples: 2115
  - Results:
