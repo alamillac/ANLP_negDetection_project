@@ -104,7 +104,8 @@ class NegDetection(object):
             features["prev"] = tagged_text[idx - 1::-1]
             features["next"] = tagged_text[idx + 1:]
         except:
-            print "PHRASE: %s not found" % word
+            #print "PHRASE: %s not found" % word
+            pass
 
         return features
 
@@ -220,21 +221,20 @@ class NegDetection(object):
         prob = math.log(float(f_p_count + 1) / (f_p_total + vocabulary)) + math.log(float(f_n_count + 1) / (f_n_total + vocabulary))
         return prob
 
-    def get_probability(self, data):
+    def get_log_probability(self, data, opt_features=["feature_1", "feature_2", "feature_3", "feature_4"]):
         prob = {}
         for class_name in self.__class_names.values():
-            f1_prob = self.get_prob_feature(data, class_name, "feature_1")
-            f2_prob = self.get_prob_feature(data, class_name, "feature_2")
-            f3_prob = self.get_prob_feature(data, class_name, "feature_3")
-            f4_prob = self.get_prob_feature(data, class_name, "feature_4")
-            prob[class_name] = math.log(float(self._model[class_name]["count"]) / self._model["total_docs"]) + f1_prob + f2_prob + f3_prob + f4_prob
+            f_prob = 0
+            for feature_name in opt_features:
+                f_prob += self.get_prob_feature(data, class_name, feature_name)
+            prob[class_name] = math.log(float(self._model[class_name]["count"]) / self._model["total_docs"]) + f_prob
         return prob
 
-    def test(self, test_set):
+    def test(self, test_set, opt_features=["feature_1", "feature_2", "feature_3", "feature_4"]):
         listFeatures = self.get_listfeatures_from_reports(test_set)
         results = []
         for data in listFeatures:
-            probs = self.get_probability(data)
+            probs = self.get_log_probability(data, opt_features)
             true_class = data["class"]
             negex_class = data["negex_class"]
 

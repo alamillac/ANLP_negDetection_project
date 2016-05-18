@@ -8,36 +8,28 @@ from sklearn.cross_validation import train_test_split
 def main():
     reports = getReports('Annotations-1-120.txt')
     rules = getRules('negex_triggers.txt')
-    train_set, test_set = train_test_split(reports, train_size=0.9)
+    train_set, test_set = train_test_split(reports, train_size=0.9, random_state=7)
     detection_system = NegDetection(rules)
+    print "Training system"
     detection_system.train(train_set)
-    results = detection_system.test(test_set)
-    corrects = 0
-    neg_corrects = 0
-    neg_incorrects = 0
-    negex_corrects = 0
-    negex_neg_corrects = 0
-    negex_neg_incorrects = 0
-    for result in results:
-        if result["is_correct"]:
-            corrects += 1
 
-        if result["is_negex_correct"]:
-            negex_corrects += 1
+    # Show train results
+    print "Testing system"
+    train_results = detection_system.test(train_set)
+    showResults(train_results, "Train results")
 
-        if result["class"] == "neg_class":
-            if result["is_correct"]:
-                neg_corrects += 1
-            else:
-                neg_incorrects += 1
+    # Show test results
+    opt_features = [
+        ("Feature 1", ["feature_1"]),
+        ("Features 1,2", ["feature_1", "feature_2"]),
+        ("Features 1,2,3", ["feature_1", "feature_2", "feature_3"]),
+        ("Features 1,2,3,4", ["feature_1", "feature_2", "feature_3", "feature_4"]),
+        ("Feature 4", ["feature_4"])
+    ]
 
-            if result["is_negex_correct"]:
-                negex_neg_corrects += 1
-            else:
-                negex_neg_incorrects += 1
-
-
-    import ipdb; ipdb.set_trace()  # BREAKPOINT
+    for title, feature_names in opt_features:
+        results = detection_system.test(test_set, feature_names)
+        showResults(results, title)
 
 
 if __name__ == '__main__':
