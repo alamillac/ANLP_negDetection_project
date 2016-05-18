@@ -9,7 +9,9 @@ $ pip install -r requirements.txt
 ```
 
 ## Run
-python negDetection.py
+```sh
+$ python negDetection.py
+```
 
 ## Results
 
